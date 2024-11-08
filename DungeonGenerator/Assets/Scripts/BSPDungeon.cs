@@ -1,17 +1,17 @@
 using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine.Tilemaps;
 
 public class Leaf
 {
 
     public static int minLeafSize = 20;
-    public static int maxLeafSize = 30;
     public static int numLeaves = 0;
     public static int roomBuffer = 2;
-    public static GameObject roomPrefab;
-    public static GameObject hallwayPrefab;
     public static GameObject dungeonRoot;
-    public static float splitChance = 0.75f;
-    private int x, y, width, height;
+    public static Tilemap tilemap;
+    public static RuleTile ruleTile;
+    public int x, y, width, height;
     public Leaf leftChild, rightChild;
     private GameObject room;
     
@@ -35,28 +35,13 @@ public class Leaf
         background = GameObject.CreatePrimitive(PrimitiveType.Cube);
         background.transform.position = new Vector3(x + width / 2, y + height / 2, 0);
         background.transform.localScale = new Vector3(width, height, 1);
-        background.GetComponent<Renderer>().material.color = Color.black;
         background.name = "Leaf" + numLeaves;
+
+        // Choose random color for the background
+        background.GetComponent<Renderer>().material.color = new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f));
 
         // Set the parent of the background to the dungeonRoot
         background.transform.parent = dungeonRoot.transform;
-    }
-
-    public void CreateRoom()
-    {
-        // Create a room inside the leaf
-        int roomWidth = width - roomBuffer;
-        int roomHeight = height - roomBuffer;
-        int roomX = x + roomBuffer / 2;
-        int roomY = y + roomBuffer / 2;
-
-        room = GameObject.Instantiate(roomPrefab);
-        room.transform.position = new Vector3(roomX + roomWidth / 2, roomY + roomHeight / 2, 0);
-        room.transform.localScale = new Vector3(roomWidth, roomHeight, 1);
-        room.name = "Room" + numLeaves;
-
-        // Set the parent of the room to the dungeonRoot
-        room.transform.parent = dungeonRoot.transform;
     }
 
     public bool Split()
@@ -101,15 +86,14 @@ public class Leaf
         // Determine the maximum split size
         int max = (splitH ? height : width) - minLeafSize;
 
-        // If the leaf is too small to split, or if the leaf chooses not to split, then draw the room and return false
-        if (max <= minLeafSize || (Random.Range(0f, 1f) > splitChance && width < maxLeafSize && height < maxLeafSize))  
-        {
-            CreateRoom();
-            return false;
-        }
-
         // Determine the split position
         int split = Random.Range(minLeafSize, max);
+
+        // Check if split would be too small
+        if (max <= minLeafSize)
+        {
+            return false;
+        }
 
         // Create the children based on the split direction
         if (splitH)
@@ -130,12 +114,88 @@ public class Leaf
         return true;
 
     }
+
+    public void CreateRooms()
+    {
+        // Generate rooms for this Leaf and all of its children.
+        if (leftChild != null || rightChild != null)
+        {
+            if (leftChild != null)
+            {
+                leftChild.CreateRooms();
+            }
+            if (rightChild != null)
+            {
+                rightChild.CreateRooms();
+            }
+
+            // Create a hallway between left and right children
+            if (leftChild != null && rightChild != null)
+            {
+                CreateHallway(leftChild.GetRoomCenter(), rightChild.GetRoomCenter());
+            }
+        }
+        else
+        {
+            // Generate the room within the boundaries of this leaf.
+            for (int u = x + roomBuffer; u < x + width - roomBuffer; u++)
+            {
+                for (int v = y + roomBuffer; v < y + height - roomBuffer; v++)
+                {
+                    tilemap.SetTile(new Vector3Int(u, v, 0), ruleTile);
+                }
+            }
+        }
+    }
+
+
+    public Vector2Int GetRoomCenter()
+    {
+        int centerX = x + roomBuffer + width / 2;
+        int centerY = y + roomBuffer + height / 2;
+        return new Vector2Int(centerX, centerY);
+    }
+
+    private void CreateHallway(Vector2Int start, Vector2Int end, int hallwayWidth = 3)
+    {
+        if (Mathf.Abs(start.x - end.x) > Mathf.Abs(start.y - end.y))
+        {
+            // Horizontal hallway
+            int minX = Mathf.Min(start.x, end.x);
+            int maxX = Mathf.Max(start.x, end.x);
+            int y = start.y;
+
+            for (int x = minX; x <= maxX; x++)
+            {
+                for (int i = -hallwayWidth / 2; i <= hallwayWidth / 2; i++)
+                {
+                    tilemap.SetTile(new Vector3Int(x, y + i, 0), ruleTile);
+                }
+            }
+        }
+        else
+        {
+            // Vertical hallway
+            int minY = Mathf.Min(start.y, end.y);
+            int maxY = Mathf.Max(start.y, end.y);
+            int x = start.x;
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int i = -hallwayWidth / 2; i <= hallwayWidth / 2; i++)
+                {
+                    tilemap.SetTile(new Vector3Int(x + i, y, 0), ruleTile);
+                }
+            }
+        }
+    }
 }
 
 public class BSPDungeon : MonoBehaviour
 {
-    public GameObject roomPrefab;
-    public GameObject hallwayPrefab;
+    public Tilemap tilemap;
+    public RuleTile ruleTile;
+    public int roomBuffer = 2;
     public int minLeafSize = 10;
     public int maxLeafSize = 30;
     public int rootLeafSizeX = 100;
@@ -151,15 +211,13 @@ public class BSPDungeon : MonoBehaviour
         dungeonRoot.name = "DungeonRoot";
 
         Leaf.minLeafSize = minLeafSize;
-        Leaf.roomPrefab = roomPrefab;
-        Leaf.hallwayPrefab = hallwayPrefab;
         Leaf.dungeonRoot = dungeonRoot;
-        Leaf.splitChance = splitChance;
-        Leaf.maxLeafSize = maxLeafSize;
+        Leaf.tilemap = tilemap;
+        Leaf.ruleTile = ruleTile;
+        Leaf.roomBuffer = roomBuffer;
 
-        rootLeaf = new Leaf(0, 0, rootLeafSizeX, rootLeafSizeY);
-        
-        SplitAllLeaves(rootLeaf);
+        CreateLeaves();
+        rootLeaf.CreateRooms();
     }
 
     void Update()
@@ -168,21 +226,42 @@ public class BSPDungeon : MonoBehaviour
         {
             Leaf.numLeaves = 0;
             Destroy(dungeonRoot);
+            ClearTilemap();
             Start();
-        }   
+        }
     }
 
-    void SplitAllLeaves(Leaf leaf)
+    void CreateLeaves()
     {
-        if (leaf == null)
-        {
-            return;
-        }
+        List<Leaf> leafList = new List<Leaf>();
+        rootLeaf = new Leaf(0, 0, rootLeafSizeX, rootLeafSizeY);
+        leafList.Add(rootLeaf);
 
-        if (leaf.Split())
+        bool didSplit = true;
+        
+        // Split the leaves until no more leaves can be split
+        while (didSplit)
         {
-            SplitAllLeaves(leaf.leftChild);
-            SplitAllLeaves(leaf.rightChild);
+            didSplit = false;
+            // Important: using a for loop here instead of foreach because we will be adding to the list
+            for (int i = 0; i < leafList.Count; i++)
+            {
+                Leaf l = leafList[i];
+                if (l.leftChild == null && l.rightChild == null)
+                {
+                    if (l.Split())
+                    {
+                        leafList.Add(l.leftChild);
+                        leafList.Add(l.rightChild);
+                        didSplit = true;
+                    }
+                }
+            }
         }
+    }
+
+    void ClearTilemap()
+    {
+        tilemap.ClearAllTiles();
     }
 }
