@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using System.Linq;
 
-public class DungeonGeneration : MonoBehaviour
+public class RoomAndHalls : MonoBehaviour
 {
 
     /*  ALGORITHM: Tree-based Backpropogating Dungeon Generation
@@ -37,8 +37,8 @@ public class DungeonGeneration : MonoBehaviour
     private GameObject[] rooms;
 
     public int hallwayMinLength = 3;
-    public int hallwayMaxLength = 10;
-    public float turnChance = 0.1f; // [0.0 - 1.0]
+    public int hallwayMaxLength = 6;
+    public float turnChance = 0.3f; // [0.0 - 1.0]
     public int roomsToGenerate = 20;
 
     private GameObject masterParent;

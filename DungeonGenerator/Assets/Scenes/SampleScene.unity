@@ -119,6 +119,57 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &1903677397
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1903677399}
+  - component: {fileID: 1903677398}
+  m_Layer: 0
+  m_Name: BSPDungeon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1903677398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903677397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b68e5421992ad3c40bf89f60b5e233b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomPrefab: {fileID: 4017357253148257515, guid: 91e1b59df2fec2148b3ef07401eeee18, type: 3}
+  hallwayPrefab: {fileID: 4017357253148257515, guid: 817546bd11f4e5648aaecebc9d070fa1, type: 3}
+  minLeafSize: 10
+  maxLeafSize: 30
+  rootLeafSizeX: 100
+  rootLeafSizeY: 100
+  splitChance: 0.75
+--- !u!4 &1903677399
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903677397}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2117376773
 GameObject:
   m_ObjectHideFlags: 0
@@ -128,31 +179,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2117376775}
-  - component: {fileID: 2117376774}
+  - component: {fileID: 2117376776}
   m_Layer: 0
-  m_Name: DungeonGenerator
+  m_Name: RoomAndHalls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2117376774
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2117376773}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cee12cfff0d48284dbc8a12a88774d63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hallwayMinLength: 3
-  hallwayMaxLength: 6
-  turnChance: 0.3
-  roomsToGenerate: 20
-  roomsMade: 1
+  m_IsActive: 0
 --- !u!4 &2117376775
 Transform:
   m_ObjectHideFlags: 0
@@ -168,8 +202,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2117376776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2117376773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee12cfff0d48284dbc8a12a88774d63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hallwayMinLength: 3
+  hallwayMaxLength: 10
+  turnChance: 0.1
+  roomsToGenerate: 20
+  roomsMade: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 2117376775}
+  - {fileID: 1903677399}
