@@ -5,12 +5,12 @@ using UnityEngine;
 
 public class WeaponPickup : MonoBehaviour
 {
-    [SerializeField] WeaponInfo weaponInfo;
+    private Weapon weapon = null;
 
-    private void Awake()
+    public void AssignWeapon(Weapon weapon)
     {
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = weaponInfo.pickupSprite;
+        this.weapon = weapon;
+        GetComponent<SpriteRenderer>().sprite = weapon.WeaponInfo.pickupSprite;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -19,7 +19,7 @@ public class WeaponPickup : MonoBehaviour
 
         if (player is not null)
         {
-            player.PickUpWeapon(weaponInfo);
+            player.PickUpWeapon(weapon);
         }
     }
 }
