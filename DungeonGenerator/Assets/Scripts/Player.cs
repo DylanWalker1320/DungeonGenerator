@@ -1,30 +1,25 @@
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Rigidbody2D))]
-
 public class Player : MonoBehaviour
 {
     private Animator animator;
     private Rigidbody2D rb;
 
     private readonly int attackTriggerId = Animator.StringToHash("Attack");
+    private readonly int specialAttackTriggerId = Animator.StringToHash("SpecialAttack");
 
     [SerializeField] AnimatorOverrideController punchOverrideControler;
     [SerializeField] AnimatorOverrideController kickOverrideController;
+
+    private WeaponInfo weaponInfo = null;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
     }
 
     // Update is called once per frame
@@ -34,6 +29,10 @@ public class Player : MonoBehaviour
         if (Input.GetMouseButtonDown((int) MouseButton.Left))
         {
             animator.SetTrigger(attackTriggerId);
+        }
+        else if (Input.GetMouseButtonDown((int) MouseButton.Right))
+        {
+            animator.SetTrigger(specialAttackTriggerId);
         }
 
         if (Input.GetKeyDown(KeyCode.J))
@@ -63,8 +62,10 @@ public class Player : MonoBehaviour
         rb.linearVelocity = velocity;
     }
 
-    public void PickUpWeapon()
+    public void PickUpWeapon(WeaponInfo weaponInfo)
     {
-
+        this.weaponInfo = weaponInfo;
+        animator.runtimeAnimatorController = weaponInfo.attackOverrideController;
+        Debug.Log($"Player picked up {weaponInfo.weaponName}!");
     }
 }
